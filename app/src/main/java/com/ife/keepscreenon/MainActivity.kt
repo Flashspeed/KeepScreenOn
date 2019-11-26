@@ -3,43 +3,31 @@ package com.ife.keepscreenon
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), BluetoothBroadcastReceiver.IBluetoothResult {
 
-    val REQUEST_ENABLE_BLUETOOTH = 1
-
-    private val broadcastReciever = object: BroadcastReceiver(){
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val action: String? = intent?.action
-
-            val bluetoothDevice: BluetoothDevice? = intent?.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-
-            when (action) {
-                BluetoothDevice.ACTION_ACL_CONNECTED -> {
-                    Toast.makeText(applicationContext, "Connected to ${bluetoothDevice?.name}", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+    override fun onMessageAvailable(message: String) {
+        txtBluetoothStatus.text = message
     }
+
+    private val REQUEST_ENABLE_BLUETOOTH = 1
+
+    private val broadcastReceiver = BluetoothBroadcastReceiver()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val filterDeviceConnected = IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED)
-        registerReceiver(broadcastReciever, filterDeviceConnected)
-
-        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-
-        if (bluetoothAdapter != null) {
-            // Device has bluetooth support
+        registerReceivers()
+        if(deviceHasBluetoothSupport()){
+            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+            // Check if bluetooth is on
             if(!bluetoothAdapter.isEnabled){
                 val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 startActivityForResult(enableBluetoothIntent, REQUEST_ENABLE_BLUETOOTH)
@@ -63,6 +51,20 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun deviceHasBluetoothSupport(): Boolean{
+        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        return bluetoothAdapter != null
+    }
+
+    private fun registerReceivers(){
+        val filterDeviceConnected = IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED)
+        val filterDeviceDisconnected = IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        val filterDeviceStateChanged = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+        registerReceiver(broadcastReceiver, filterDeviceConnected)
+        registerReceiver(broadcastReceiver, filterDeviceDisconnected)
+        registerReceiver(broadcastReceiver, filterDeviceStateChanged)
     }
 
 
