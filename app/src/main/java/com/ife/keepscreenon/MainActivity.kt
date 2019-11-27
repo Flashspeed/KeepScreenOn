@@ -19,6 +19,8 @@ class MainActivity : AppCompatActivity(), BluetoothBroadcastReceiver.IBluetoothR
     private val REQUEST_ENABLE_BLUETOOTH = 1
 
     private val broadcastReceiver = BluetoothBroadcastReceiver()
+    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,11 +28,16 @@ class MainActivity : AppCompatActivity(), BluetoothBroadcastReceiver.IBluetoothR
 
         registerReceivers()
         if(deviceHasBluetoothSupport()){
-            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             // Check if bluetooth is on
             if(!bluetoothAdapter.isEnabled){
                 val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 startActivityForResult(enableBluetoothIntent, REQUEST_ENABLE_BLUETOOTH)
+            }
+
+            val pairedDevices = bluetoothAdapter.bondedDevices
+            pairedDevices.forEach { device ->
+                val deviceName = device.name
+                val deviceMacAddress = device.address
             }
         }
     }
