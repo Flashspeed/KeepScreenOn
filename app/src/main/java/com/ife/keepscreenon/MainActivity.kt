@@ -20,6 +20,10 @@ class MainActivity : AppCompatActivity(), BluetoothBroadcastReceiver.IBluetoothR
     CoroutineScope {
 
     private val job = Job()
+    private val REQUEST_ENABLE_BLUETOOTH = 1
+    private val broadcastReceiver = BluetoothBroadcastReceiver()
+    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+
 
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
@@ -28,58 +32,11 @@ class MainActivity : AppCompatActivity(), BluetoothBroadcastReceiver.IBluetoothR
         txtBluetoothStatus.text = message
     }
 
-    private val REQUEST_ENABLE_BLUETOOTH = 1
-
-    private val broadcastReceiver = BluetoothBroadcastReceiver()
-    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-
     override fun onResume() {
         super.onResume()
 
         registerReceivers()
         checkForConnection()
-    }
-
-    private fun checkForConnection(){
-        Log.d(this.javaClass.simpleName, "In check for connection")
-
-        if(deviceHasBluetoothSupport()){
-            val pairedDevices = bluetoothAdapter.bondedDevices
-            pairedDevices.forEach { device ->
-                val deviceName = device.name
-
-                if(device?.bluetoothClass?.deviceClass == BluetoothClass.Device.AUDIO_VIDEO_HANDSFREE){
-                    Toast.makeText(this, "Resume - Connected to handsfree (Car) audio in $deviceName", Toast.LENGTH_LONG).show()
-                }
-
-                if (deviceName == "Talk2") {
-                    Log.d(this.javaClass.simpleName, "Paired Device: $deviceName")
-                    val UUID = device.uuids[0].uuid
-
-                    launch {
-                        withContext(Dispatchers.IO) {
-                            try {
-                                bluetoothAdapter.cancelDiscovery()
-                                device.createRfcommSocketToServiceRecord(UUID).connect()
-                                Log.d(this.javaClass.simpleName, "checkForConnection - Connection to $deviceName Successful")
-
-                                launch {
-                                    withContext(Dispatchers.Main){
-                                        txtBluetoothStatus.text = "Resume - Connected to $deviceName"
-                                    }
-                                }
-
-                            } catch (e: IOException) {
-                                Log.e(
-                                    this.javaClass.simpleName,
-                                    "Could not connect because: ${e.message}"
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,6 +89,49 @@ class MainActivity : AppCompatActivity(), BluetoothBroadcastReceiver.IBluetoothR
     private fun bluetoothIsConnected(): Boolean {
         return bluetoothAdapter.getProfileConnectionState(BluetoothHeadset.HEADSET) == BluetoothHeadset.STATE_CONNECTED
     }
+
+    private fun checkForConnection(){
+        Log.d(this.javaClass.simpleName, "In check for connection")
+
+        if(deviceHasBluetoothSupport()){
+            val pairedDevices = bluetoothAdapter.bondedDevices
+            pairedDevices.forEach { device ->
+                val deviceName = device.name
+
+                if(device?.bluetoothClass?.deviceClass == BluetoothClass.Device.AUDIO_VIDEO_HANDSFREE){
+                    Toast.makeText(this, "Resume - Connected to handsfree (Car) audio in $deviceName", Toast.LENGTH_LONG).show()
+                }
+
+                if (deviceName == "Talk2") {
+                    Log.d(this.javaClass.simpleName, "Paired Device: $deviceName")
+                    val UUID = device.uuids[0].uuid
+
+                    launch {
+                        withContext(Dispatchers.IO) {
+                            try {
+                                bluetoothAdapter.cancelDiscovery()
+                                device.createRfcommSocketToServiceRecord(UUID).connect()
+                                Log.d(this.javaClass.simpleName, "checkForConnection - Connection to $deviceName Successful")
+
+                                launch {
+                                    withContext(Dispatchers.Main){
+                                        txtBluetoothStatus.text = "Resume - Connected to $deviceName"
+                                    }
+                                }
+
+                            } catch (e: IOException) {
+                                Log.e(
+                                    this.javaClass.simpleName,
+                                    "Could not connect because: ${e.message}"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
 
 }
