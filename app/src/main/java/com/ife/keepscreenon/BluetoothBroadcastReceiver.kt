@@ -2,6 +2,7 @@ package com.ife.keepscreenon
 
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
@@ -17,6 +18,8 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
         fun onMessageAvailable(message: String)
     }
 
+    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+
     private var messageAvailableListener: IBluetoothResult? = null
 
     private lateinit var context: Context
@@ -26,6 +29,8 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
 
         val action: String? = intent?.action
         messageAvailableListener = context as? IBluetoothResult
+
+        val bondedBluetoothDevices = bluetoothAdapter.bondedDevices
 
         val bluetoothDevice: BluetoothDevice? =
             intent?.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
@@ -40,10 +45,10 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
                 messageAvailableListener?.onMessageAvailable("Connected to ${bluetoothDevice?.name}")
 
                 Log.d(this.javaClass.simpleName, "Connected to ${bluetoothDevice?.name}")
-                startAlarm()
+//                startAlarm()
 
                 if (bluetoothDevice?.bluetoothClass?.deviceClass == BluetoothClass.Device.AUDIO_VIDEO_CAR_AUDIO) {
-                    Toast.makeText(context, "Connected to car audio", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Connected to car audio in ${bluetoothDevice.name}", Toast.LENGTH_SHORT).show()
                     Log.d(this.javaClass.simpleName, "Connected to car audio")
                 }
             }
@@ -59,7 +64,7 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
                     this.javaClass.simpleName,
                     "Bluetooth disconnected from ${bluetoothDevice?.name}"
                 )
-                cancelAlarm()
+//                cancelAlarm()
             }
 
             BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
