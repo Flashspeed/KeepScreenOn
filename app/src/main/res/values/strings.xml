@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">KeepScreenOn</string>
+    <string name="open_app">Open App</string>
 </resources>

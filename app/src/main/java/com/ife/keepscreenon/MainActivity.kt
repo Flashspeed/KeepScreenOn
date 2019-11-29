@@ -1,10 +1,12 @@
 package com.ife.keepscreenon
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHeadset
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
@@ -98,9 +100,9 @@ class MainActivity : AppCompatActivity(), BluetoothBroadcastReceiver.IBluetoothR
             pairedDevices.forEach { device ->
                 val deviceName = device.name
 
-                if(device?.bluetoothClass?.deviceClass == BluetoothClass.Device.AUDIO_VIDEO_HANDSFREE){
-                    Toast.makeText(this, "Resume - Connected to handsfree (Car) audio in $deviceName", Toast.LENGTH_LONG).show()
-                }
+//                if(device?.bluetoothClass?.deviceClass == BluetoothClass.Device.AUDIO_VIDEO_HANDSFREE){
+//                    Toast.makeText(this, "Resume - Connected to handsfree (Car) audio in $deviceName", Toast.LENGTH_LONG).show()
+//                }
 
                 if (deviceName == "Talk2") {
                     Log.d(this.javaClass.simpleName, "Paired Device: $deviceName")
@@ -112,7 +114,7 @@ class MainActivity : AppCompatActivity(), BluetoothBroadcastReceiver.IBluetoothR
                                 bluetoothAdapter.cancelDiscovery()
                                 device.createRfcommSocketToServiceRecord(UUID).connect()
                                 Log.d(this.javaClass.simpleName, "checkForConnection - Connection to $deviceName Successful")
-
+                                registerReceivers()
                                 launch {
                                     withContext(Dispatchers.Main){
                                         txtBluetoothStatus.text = "Resume - Connected to $deviceName"

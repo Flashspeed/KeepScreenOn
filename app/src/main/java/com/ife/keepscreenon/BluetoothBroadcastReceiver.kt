@@ -1,7 +1,6 @@
 package com.ife.keepscreenon
 
-import android.app.AlarmManager
-import android.app.PendingIntent
+import android.app.*
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
@@ -10,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
-import androidx.work.PeriodicWorkRequestBuilder
 
 class BluetoothBroadcastReceiver : BroadcastReceiver() {
 
@@ -22,10 +20,13 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
 
     private var messageAvailableListener: IBluetoothResult? = null
 
+    private lateinit var notificationHelper: NotificationHelper
+
     private lateinit var context: Context
 
     override fun onReceive(context: Context?, intent: Intent?) {
         this.context = context!!
+        notificationHelper = NotificationHelper(context)
 
         val action: String? = intent?.action
         messageAvailableListener = context as? IBluetoothResult
@@ -45,10 +46,23 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
                 messageAvailableListener?.onMessageAvailable("Connected to ${bluetoothDevice?.name}")
 
                 Log.d(this.javaClass.simpleName, "Connected to ${bluetoothDevice?.name}")
-//                startAlarm()
+                if (!isScreenOnServiceRunning()) {
+                    startAlarm()
+                    notificationHelper.hideNotification()
+                    notificationHelper.showNotification(
+                        null,
+                        "Screen On",
+                        "Screen is on",
+                        null
+                    )
+                }
 
                 if (bluetoothDevice?.bluetoothClass?.deviceClass == BluetoothClass.Device.AUDIO_VIDEO_CAR_AUDIO) {
-                    Toast.makeText(context, "Connected to car audio in ${bluetoothDevice.name}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        "Connected to car audio in ${bluetoothDevice.name}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     Log.d(this.javaClass.simpleName, "Connected to car audio")
                 }
             }
@@ -64,7 +78,10 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
                     this.javaClass.simpleName,
                     "Bluetooth disconnected from ${bluetoothDevice?.name}"
                 )
-//                cancelAlarm()
+                if (isScreenOnServiceRunning()) {
+                    cancelAlarm()
+                    notificationHelper.hideNotification()
+                }
             }
 
             BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
@@ -82,11 +99,11 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
     }
 
     private fun getPendingIntent(): PendingIntent {
-        val intent = Intent(context, JobServiceScreenOnBroadcastReceiver::class.java)
+        val intent = Intent(context, ScreenOnBroadcastReceiver::class.java)
 
         return PendingIntent.getBroadcast(
             context,
-            JobServiceScreenOnBroadcastReceiver.codes.REQUEST_CODE,
+            ScreenOnBroadcastReceiver.codes.REQUEST_CODE,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT
         )
@@ -109,6 +126,7 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
             "Alarm started",
             Toast.LENGTH_SHORT
         ).show()
+        Log.d(this.javaClass.simpleName, "Alarm Started")
     }
 
     private fun cancelAlarm() {
@@ -121,5 +139,19 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
             "Alarm canceled",
             Toast.LENGTH_SHORT
         ).show()
+
+        Log.d(this.javaClass.simpleName, "Alarm Cancelled")
+
+    }
+
+    private fun isScreenOnServiceRunning(): Boolean {
+        val myService = IntentServiceScreenOn::class.java
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        activityManager.getRunningServices(Int.MAX_VALUE).forEach {
+            if (myService.name == it.service.className) {
+                return true
+            }
+        }
+        return false
     }
 }
