@@ -68,7 +68,7 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    fun hideNotification() = notificationManagerCompat?.cancel(SCREEN_ON_NOTIFICATION_ID)
+    fun hideNotification() = notificationManagerCompat?.cancelAll()
 
     fun showNotification(
         imageResId: Int?,

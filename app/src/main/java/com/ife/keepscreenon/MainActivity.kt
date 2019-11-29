@@ -104,7 +104,7 @@ class MainActivity : AppCompatActivity(), BluetoothBroadcastReceiver.IBluetoothR
 //                    Toast.makeText(this, "Resume - Connected to handsfree (Car) audio in $deviceName", Toast.LENGTH_LONG).show()
 //                }
 
-                if (deviceName == "Talk2") {
+                if (deviceName == "Talk2" || deviceName == "SYNC") {
                     Log.d(this.javaClass.simpleName, "Paired Device: $deviceName")
                     val UUID = device.uuids[0].uuid
 
