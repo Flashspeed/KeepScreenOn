@@ -55,20 +55,25 @@ class NotificationHelper(private val context: Context) {
         notificationChannelId: String
     ) {
 
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+//        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+//
+//
+//        }
+        val notificationChannel = NotificationChannel(
+            notificationChannelId,
+            channelName,
+            NotificationManager.IMPORTANCE_HIGH
+        )
 
-            val notificationChannel = NotificationChannel(
-                notificationChannelId,
-                channelName,
-                NotificationManager.IMPORTANCE_HIGH
-            )
-
-            notificationChannel.description = channelDescription
-            notificationManager?.createNotificationChannel(notificationChannel)
-        }
+        notificationChannel.description = channelDescription
+//            notificationManager?.createNotificationChannel(notificationChannel)
+        notificationManagerCompat?.createNotificationChannel(notificationChannel)
     }
 
-    fun hideNotification() = notificationManagerCompat?.cancelAll()
+    fun hideNotification() {
+//        notificationManager?.cancelAll()
+        notificationManagerCompat?.cancelAll()
+    }
 
     fun showNotification(
         imageResId: Int?,
@@ -93,6 +98,11 @@ class NotificationHelper(private val context: Context) {
                 )
                 .setContentIntent(pendingIntentOpenApp)
                 .setAutoCancel(false)
+
+//        notificationManager?.notify(
+//            SCREEN_ON_NOTIFICATION_ID,
+//            notificationBuilder.build()
+//        )
 
         notificationManagerCompat?.notify(
             SCREEN_ON_NOTIFICATION_ID,

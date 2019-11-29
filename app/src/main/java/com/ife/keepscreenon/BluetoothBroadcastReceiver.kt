@@ -126,6 +126,7 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
             "Alarm started",
             Toast.LENGTH_SHORT
         ).show()
+
         Log.d(this.javaClass.simpleName, "Alarm Started")
     }
 
